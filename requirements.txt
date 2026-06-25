@@ -1,6 +1,5 @@
 streamlit
 supabase
-google-generativeai
 pypdf
 requests
 beautifulsoup4
