@@ -3,12 +3,13 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from supabase import create_client
-import google.generativeai as genai
+from groq import Groq  # <-- MODIFICATO: Importiamo Groq al posto di Gemini
 from urllib.parse import urljoin
 
 # Connessione Cloud e Inizializzazione AI
 supabase = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+# <-- MODIFICATO: Inizializzazione del client Groq usando la nuova chiave dei Secrets
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def leggi_e_pulisci_sito_con_link(url):
     try:
@@ -34,7 +35,7 @@ def leggi_e_pulisci_sito_con_link(url):
         return ""
 
 def esegui_monitoraggio_universale_ai():
-    print("🤖 Avvio del Robot AI di Monitoraggio Universale...")
+    print("🤖 Avvio del Robot AI di Monitoraggio Universale con Groq...")
     # Prende solo le fonti configurate dall'applicazione come attive
     fonti = supabase.table("fonti").select("*").eq("attiva", True).execute().data
     
@@ -42,8 +43,7 @@ def esegui_monitoraggio_universale_ai():
         print("Nessuna fonte abilitata nel database.")
         return
 
-    model = genai.GenerativeModel('gemini-2.0-flash')
-
+    # <-- MODIFICATO: Riscritto il ciclo per usare la chiamata corretta a Groq
     for f in fonti:
         print(f"Scansione in corso: Ente '{f['ente']}' sull'indirizzo: {f['url']}")
         testo_pulito = leggi_e_pulisci_sito_con_link(f['url'])
@@ -58,7 +58,7 @@ def esegui_monitoraggio_universale_ai():
         Presta massima attenzione ai link racchiusi nei blocchi '[LINK: ...]': abbina a ciascun bando individuato il suo specifico link della pagina interna.
         
         TESTO DELLA PAGINA ESTRATTO:
-        {testo_pulito[:35000]}
+        {testo_pulito[:25000]}
         
         Restituisci l'elenco dei bandi trovati ESCLUSIVAMENTE sotto forma di array JSON (senza introduzioni o blocchi markdown esterni), formattato esattamente così:
         [
@@ -70,8 +70,19 @@ def esegui_monitoraggio_universale_ai():
         ]
         """
         try:
-            risposta = model.generate_content(prompt)
-            clean_text = risposta.text.replace("```json", "").replace("```", "").strip()
+            # <-- MODIFICATO: Struttura di chiamata nativa per l'SDK di Groq
+            completion = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2,
+            )
+            
+            # Estraiamo il testo della risposta generata da Llama
+            risposta_ai = completion.choices[0].message.content
+            
+            clean_text = risposta_ai.replace("```json", "").replace("```", "").strip()
             nuovi_bandi = json.loads(clean_text)
             
             for bando in nuovi_bandi:
