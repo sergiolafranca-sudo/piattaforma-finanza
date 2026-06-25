@@ -266,7 +266,7 @@ with tab_fonti:
         nuovo_tipo = col_t.selectbox("Tipologia Ambito", ["Nazionale", "Regionale", "Europeo"])
         
         if st.form_submit_button("Aggiungi Nuova Fonte ai Robot 📡", use_container_width=True):
-            if nuovo_url and编制 = nuovo_ente:
+            if nuovo_url and nuovo_ente:
                 try:
                     supabase.table("fonti").insert({"url": nuovo_url, "ente": nuovo_ente, "tipologia": nuovo_tipo}).execute()
                     st.success(f"Fonte '{nuovo_ente}' aggiunta con successo. Verrà inclusa nella scansione notturna.")
