@@ -1,0 +1,28 @@
+name: Robot Notturno AI Universale
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Esecuzione automatica ogni notte alle 02:00 UTC
+  workflow_dispatch:      # Consente l'attivazione manuale cliccando un bottone su GitHub
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Codice
+      uses: actions/checkout@v3
+      
+    - name: Configurazione Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Installazione Librerie
+      run: pip install -r requirements.txt
+        
+    - name: Esecuzione Scraper Universale AI
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: python scraper.py
