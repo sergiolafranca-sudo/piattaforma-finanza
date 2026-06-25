@@ -42,7 +42,7 @@ def esegui_monitoraggio_universale_ai():
         print("Nessuna fonte abilitata nel database.")
         return
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
     for f in fonti:
         print(f"Scansione in corso: Ente '{f['ente']}' sull'indirizzo: {f['url']}")
